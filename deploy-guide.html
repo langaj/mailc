@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cloud-mail-worker 部署指南</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans SC', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      line-height: 1.7;
+      padding: 20px;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      border-radius: 16px 16px 0 0;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 8px;
+    }
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1em;
+    }
+    .content {
+      background: white;
+      padding: 40px;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+    h2 {
+      font-size: 1.4em;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #667eea;
+      color: #333;
+    }
+    h2:first-child {
+      margin-top: 0;
+    }
+    h3 {
+      font-size: 1.1em;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: #444;
+    }
+    p, li {
+      margin-bottom: 8px;
+      color: #444;
+    }
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    .step-card {
+      background: #f8f9ff;
+      border: 1px solid #e0e3ff;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+    }
+    .step-card .step-num {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 28px;
+      font-size: 14px;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    .step-card h3 {
+      display: inline;
+      margin: 0;
+    }
+    code {
+      background: #f0f2f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9em;
+      color: #d63384;
+    }
+    pre {
+      background: #1a1a2e;
+      color: #e8e8e8;
+      padding: 16px 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9em;
+      line-height: 1.5;
+      margin: 12px 0;
+    }
+    pre .comment { color: #6a9955; }
+    pre .keyword { color: #569cd6; }
+    pre .string { color: #ce9178; }
+    pre .prompt { color: #6a9955; }
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .warning strong {
+      color: #856404;
+    }
+    .tip {
+      background: #d4edda;
+      border: 1px solid #28a745;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .tip strong {
+      color: #155724;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    th {
+      background: #f8f9ff;
+      font-weight: 600;
+      color: #333;
+    }
+    .file-tree {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px 24px;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9em;
+      line-height: 2;
+      margin: 12px 0;
+    }
+    .file-tree .dir { color: #569cd6; }
+    .file-tree .file { color: #ce9178; }
+    .footer {
+      text-align: center;
+      color: #999;
+      font-size: 0.9em;
+      margin-top: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: 600;
+    }
+    .badge-blue { background: #e8eaff; color: #667eea; }
+    .badge-green { background: #d4edda; color: #28a745; }
+    .badge-orange { background: #fff3cd; color: #856404; }
+    .badge-red { background: #f8d7da; color: #721c24; }
+    @media (max-width: 600px) {
+      .header { padding: 24px 16px; }
+      .content { padding: 20px 16px; }
+      .header h1 { font-size: 1.5em; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>📬 cloud-mail-worker</h1>
+    <p>Cloudflare Email → 飞书群机器人 · 部署指南</p>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Architecture -->
+    <h2>🏗️ 架构概览</h2>
+    <pre>
+发件人
+  └─✉️ Email 发送到 your@domain.com
+       └─☁️ Cloudflare Email Routing
+            └─⚙️ Cloudflare Worker (cloud-mail-worker)
+                 ├─ 1. 发件人过滤（白/黑名单）
+                 ├─ 2. 解析邮件（发件人/主题/正文）
+                 └─ 3. POST 到飞书 Webhook
+                      └─💬 飞书群机器人消息
+    </pre>
+
+    <!-- Prerequisites -->
+    <h2>📋 前置条件</h2>
+    <ul>
+      <li><strong>☁️ Cloudflare 账号</strong> — 在 Cloudflare 管理你的域名</li>
+      <li><strong>🌐 域名</strong> — DNS 由 Cloudflare 托管</li>
+      <li><strong>💬 飞书群</strong> — 有权限添加群机器人</li>
+      <li><strong>🖥️ Node.js</strong> — 安装 <code>node -v</code> ≥ 18</li>
+    </ul>
+
+    <!-- Step 1 -->
+    <h2>🚀 部署步骤</h2>
+
+    <div class="step-card">
+      <span class="step-num">1</span>
+      <h3>获取飞书群机器人 Webhook</h3>
+      <ol>
+        <li>打开目标飞书群 → 点击右上角 <strong>···</strong> → <strong>群设置</strong></li>
+        <li>进入 <strong>群机器人</strong> → 点击 <strong>添加机器人</strong></li>
+        <li>选择 <strong>自定义机器人（通过 Webhook 发送消息）</strong></li>
+        <li>设置机器人名称（如「邮件通知」），点击「完成」</li>
+        <li><strong>复制 Webhook 地址</strong>，格式如下：</li>
+      </ol>
+      <pre>https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</pre>
+      <div class="tip">
+        <strong>💡 安全建议：</strong> 在飞书机器人设置中开启 <strong>IP 白名单</strong>，
+        将 <a href="https://www.cloudflare.com/ips/" target="_blank">Cloudflare 出口 IP 段</a> 加入白名单。
+      </div>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">2</span>
+      <h3>克隆项目 &amp; 安装依赖</h3>
+      <pre><span class="prompt">#</span> <span class="comment">进入项目目录</span>
+<span class="prompt">$</span> <span class="keyword">cd</span> cloud-mail-worker
+
+<span class="prompt">#</span> <span class="comment">安装依赖（wrangler + @cloudflare/email）</span>
+<span class="prompt">$</span> npm install</pre>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">3</span>
+      <h3>配置飞书 Webhook（加密存储）</h3>
+      <pre><span class="prompt">$</span> npx wrangler secret put FEISHU_WEBHOOK_URL
+<span class="comment"># 粘贴你的飞书机器人 Webhook URL，按 Enter</span>
+<span class="comment"># 输出: ✨  Success! Uploaded secret FEISHU_WEBHOOK_URL</span>
+
+<span class="prompt">#</span> <span class="comment">（可选）转发到第二个群</span>
+<span class="prompt">$</span> npx wrangler secret put FEISHU_WEBHOOK_URL_2</pre>
+      <div class="warning">
+        <strong>⚠️ 重要：</strong> 使用 <code>wrangler secret</code> 而不是写在 <code>wrangler.toml</code> 中，
+        Webhook URL 会被加密存储，不会泄露。
+      </div>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">4</span>
+      <h3>修改域名配置</h3>
+      <p>编辑 <code>wrangler.toml</code>，将域名改为你自己的：</p>
+      <pre><span class="comment"># wrangler.toml 第 24 行</span>
+[[email.routing]]
+  pattern = "<span style="color:#f44">*@你的域名.com</span>"
+  action = "worker"</pre>
+      <p>如果你的 Worker 名称不叫 <code>cloud-mail-worker</code>，也一并修改 <code>name</code> 字段。</p>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">5</span>
+      <h3>部署 Worker</h3>
+      <pre><span class="prompt">$</span> npx wrangler deploy
+
+<span class="comment"># 输出类似：</span>
+Total Upload: xx KB
+Uploaded cloud-mail-worker (xx sec)
+Published cloud-mail-worker (xx sec)
+  https://cloud-mail-worker.xxxx.workers.dev
+  Email: cloud-mail-worker</pre>
+    </div>
+
+    <div class="step-card">
+      <span class="step-num">6</span>
+      <h3>配置 Email Routing 路由规则</h3>
+      <ol>
+        <li>登录 <a href="https://dash.cloudflare.com/" target="_blank">Cloudflare Dashboard</a></li>
+        <li>选择你的域名 → 左侧 <strong>Email</strong> → <strong>Email Routing</strong></li>
+        <li>如果首次使用，按引导完成域名验证（添加 MX 记录等）</li>
+        <li>进入 <strong>Routing rules</strong> 标签页，点击 <strong>Create rule</strong></li>
+        <li>填写：
+          <ul>
+            <li><strong>Action:</strong> Send to Worker</li>
+            <li><strong>Worker:</strong> cloud-mail-worker</li>
+            <li><strong>Catch-all:</strong> 勾选（或填写具体地址如 <code>contact@yourdomain.com</code>）</li>
+          </ul>
+        </li>
+        <li>点击 <strong>Save</strong></li>
+      </ol>
+      <div class="tip">
+        <strong>💡 提示：</strong> 你也可以在 <strong>Catch-all address</strong> 中设置，
+        将所有发往该域名的邮件都转发到 Worker。
+      </div>
+    </div>
+
+    <!-- Verification -->
+    <h2>✅ 验证部署</h2>
+
+    <h3>方法一：发送一封测试邮件</h3>
+    <p>向你的域名邮箱发送一封邮件，然后查看飞书群是否有通知。</p>
+
+    <h3>方法二：HTTP 健康检查</h3>
+    <pre><span class="prompt">$</span> curl https://cloud-mail-worker.xxxx.workers.dev/health
+{
+  "status": "ok",
+  "name": "cloud-mail-worker",
+  "version": "1.0.0",
+  "feishuConfigured": true
+}</pre>
+
+    <h3>方法三：手动触发测试消息</h3>
+    <p>先设置 AUTH_TOKEN：</p>
+    <pre><span class="prompt">$</span> npx wrangler secret put AUTH_TOKEN
+<span class="comment"># 输入一个随机 token，如 my-test-token-123</span></pre>
+    <p>然后发送测试请求：</p>
+    <pre><span class="prompt">$</span> curl -X POST https://cloud-mail-worker.xxxx.workers.dev/test \
+  -H "X-Auth-Token: my-test-token-123" \
+  -H "Content-Type: application/json"</pre>
+
+    <h3>方法四：查看 Worker 日志</h3>
+    <pre><span class="prompt">$</span> npx wrangler tail
+<span class="comment"># 实时查看邮件处理日志</span></pre>
+
+    <!-- Customization -->
+    <h2>⚙️ 定制化配置</h2>
+
+    <p>所有配置通过环境变量控制，无需修改代码：</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>变量名</th>
+          <th>必填</th>
+          <th>说明</th>
+          <th>示例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>FEISHU_WEBHOOK_URL</code></td>
+          <td><span class="badge badge-red">是</span></td>
+          <td>飞书群机器人 Webhook URL</td>
+          <td><code>https://open.feishu.cn/...</code></td>
+        </tr>
+        <tr>
+          <td><code>FEISHU_WEBHOOK_URL_2</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>第二个飞书群</td>
+          <td><code>https://open.feishu.cn/...</code></td>
+        </tr>
+        <tr>
+          <td><code>ALLOWED_SENDERS</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>白名单，逗号分隔，支持 <code>*@domain</code></td>
+          <td><code>boss@corp.com,*@team.com</code></td>
+        </tr>
+        <tr>
+          <td><code>BLOCKED_SENDERS</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>黑名单，逗号分隔</td>
+          <td><code>spam@bad.com</code></td>
+        </tr>
+        <tr>
+          <td><code>FEISHU_MSG_TITLE</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>飞书消息标题</td>
+          <td><code>📬 新邮件提醒</code></td>
+        </tr>
+        <tr>
+          <td><code>FEISHU_MSG_TAG</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>消息前缀标签</td>
+          <td><code>[紧急]</code></td>
+        </tr>
+        <tr>
+          <td><code>FEISHU_USE_CARD</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>设为 <code>true</code> 使用消息卡片格式</td>
+          <td><code>true</code></td>
+        </tr>
+        <tr>
+          <td><code>FEISHU_MAX_BODY_PREVIEW</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>正文预览最大字符数</td>
+          <td><code>500</code></td>
+        </tr>
+        <tr>
+          <td><code>LOG_LEVEL</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>日志级别</td>
+          <td><code>debug</code></td>
+        </tr>
+        <tr>
+          <td><code>AUTH_TOKEN</code></td>
+          <td><span class="badge badge-blue">否</span></td>
+          <td>测试接口鉴权</td>
+          <td><code>my-token</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>非敏感变量（白名单、标题等）也可以写在 <code>wrangler.toml</code> 的 <code>[vars]</code> 中：</p>
+    <pre>[vars]
+ALLOWED_SENDERS = "friend@example.com"
+FEISHU_MSG_TITLE = "📬 新邮件通知"
+LOG_LEVEL = "info"</pre>
+
+    <!-- Troubleshooting -->
+    <h2>🔧 常见问题</h2>
+
+    <div class="warning">
+      <strong>❓ 收不到飞书通知？</strong>
+      <ol>
+        <li>运行 <code>npx wrangler tail</code> 看日志是否有报错</li>
+        <li>确认 <code>FEISHU_WEBHOOK_URL</code> 已正确设置</li>
+        <li>确认域名已完成 Email Routing 配置（MX 记录必须生效）</li>
+        <li>检查发件人是否被过滤规则拦截</li>
+        <li>在飞书群中 @机器人 确认它是否在线</li>
+      </ol>
+    </div>
+
+    <div class="warning">
+      <strong>❓ 飞书返回 <code>code: 10003</code>？</strong>
+      <p>Webhook URL 不正确或已失效。在飞书群设置中重新生成 Webhook 地址。</p>
+    </div>
+
+    <div class="warning">
+      <strong>❓ 邮件正文乱码？</strong>
+      <p>Worker 默认支持 UTF-8、Base64、Quoted-Printable 解码。如果仍乱码，可能是非 UTF-8 编码邮件（如 GB2312），需要修改 <code>src/email-parser.js</code> 中的解码逻辑。</p>
+    </div>
+
+    <div class="warning">
+      <strong>❓ 部署时权限错误？</strong>
+      <p>确保已用 <code>npx wrangler login</code> 登录 Cloudflare 账号。</p>
+    </div>
+
+    <!-- File structure -->
+    <h2>📂 项目文件结构</h2>
+    <div class="file-tree">
+<span class="dir">cloud-mail-worker/</span>
+├─ <span class="file">src/index.js</span>          — 主入口（邮件处理 + HTTP 接口）
+├─ <span class="file">src/email-parser.js</span>   — 邮件解析（RFC 2822 / MIME）
+├─ <span class="file">src/feishu.js</span>         — 飞书机器人 API 封装
+├─ <span class="file">wrangler.toml</span>         — Cloudflare Worker 配置
+├─ <span class="file">package.json</span>          — 依赖和脚本
+├─ <span class="file">.env.example</span>         — 环境变量示例
+├─ <span class="file">.gitignore</span>
+└─ <span class="file">README.md</span>             — 完整文档
+    </div>
+
+    <!-- Architecture deep dive -->
+    <h2>🧠 技术要点</h2>
+
+    <h3>邮件如何处理？</h3>
+    <ol>
+      <li><strong>Cloudflare Email Routing</strong> 收到发给你的域名的邮件</li>
+      <li>根据路由规则，邮件转发给 <strong>cloud-mail-worker</strong></li>
+      <li>Worker 的 <code>email()</code> 事件被触发，收到 <code>EmailMessage</code> 对象</li>
+      <li>从 <code>message.raw</code>（ReadableStream）读取原始 RFC 2822 邮件内容</li>
+      <li><code>email-parser.js</code> 解析出发件人、收件人、主题、正文（支持 multipart）</li>
+      <li><code>feishu.js</code> 将解析结果格式化为富文本消息</li>
+      <li>POST 到飞书 Webhook 端点，机器人将消息发到群中</li>
+    </ol>
+
+    <h3>飞书消息格式</h3>
+    <p>默认使用 <strong>富文本（post）</strong> 格式，显示清晰、兼容性好。</p>
+    <p>设置 <code>FEISHU_USE_CARD=true</code> 可切换为 <strong>消息卡片（interactive）</strong>
+    格式，视觉效果更佳（带颜色 header、分割线等）。</p>
+
+    <!-- Quick commands -->
+    <h2>⚡ 常用命令速查</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>用途</th>
+          <th>命令</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>安装依赖</td>
+          <td><code>npm install</code></td>
+        </tr>
+        <tr>
+          <td>本地开发</td>
+          <td><code>npx wrangler dev</code></td>
+        </tr>
+        <tr>
+          <td>部署</td>
+          <td><code>npx wrangler deploy</code></td>
+        </tr>
+        <tr>
+          <td>查看日志</td>
+          <td><code>npx wrangler tail</code></td>
+        </tr>
+        <tr>
+          <td>设置 Webhook（加密）</td>
+          <td><code>npx wrangler secret put FEISHU_WEBHOOK_URL</code></td>
+        </tr>
+        <tr>
+          <td>健康检查</td>
+          <td><code>curl https://你的worker.workers.dev/health</code></td>
+        </tr>
+        <tr>
+          <td>测试消息</td>
+          <td><code>curl -X POST .../test -H "X-Auth-Token: xxx"</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="footer">
+    有任何问题，随时反馈 🚀
+  </div>
+
+</div>
+</body>
+</html>
