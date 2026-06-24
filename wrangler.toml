@@ -1,0 +1,27 @@
+name = "cloud-mail-worker"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================================
+# 环境变量（敏感信息用 wrangler secret 设置，非敏感放这里）
+# ============================================================
+[vars]
+# 邮件处理的规则配置
+ALLOWED_SENDERS = ""          # 允许的发件人逗号分隔，留空=允许所有
+BLOCKED_SENDERS = ""          # 拦截的发件人逗号分隔
+FORWARD_TO_FEISHU = "true"    # 是否转发到飞书
+LOG_LEVEL = "info"            # debug / info / warn / error
+
+# 飞书消息自定义
+FEISHU_MSG_TITLE = "📬 新邮件通知"
+FEISHU_MSG_TAG = ""           # 消息前缀标签，如 "[外部邮件]"
+
+# ============================================================
+# Email Routing 绑定声明
+# 实际路由规则在 Cloudflare Dashboard 中配置：
+#   Email → Email Routing → Routing Rules
+# ============================================================
+[[email.routing]]
+  pattern = "*@你的域名.com"
+  action = "worker"

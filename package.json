@@ -1,0 +1,19 @@
+{
+  "name": "cloud-mail-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Email Worker — 邮件接收并转发到飞书群机器人",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "secret:webhook": "wrangler secret put FEISHU_WEBHOOK_URL",
+    "secret:webhook2": "wrangler secret put FEISHU_WEBHOOK_URL_2",
+    "secret:webhook3": "wrangler secret put FEISHU_WEBHOOK_URL_3"
+  },
+  "dependencies": {
+    "@cloudflare/email": "^0.1.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
